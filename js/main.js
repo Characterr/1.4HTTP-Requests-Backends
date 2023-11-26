@@ -7,7 +7,7 @@ const config1 = {
     { title: 'Фото', value: 'avatar' },
     { title: 'День народження', value: 'birthday' },
   ],
-  apiUrl: "https://mock-api.shpp.me/xsoroka/users"
+  apiUrl: "https://mock-api.shpp.me/ysoroka/users"
 };
 
 DataTable(config1);
