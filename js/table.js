@@ -7,11 +7,16 @@ import { sorting, getOtherData, showFieldsAddingData, addEntry, search } from ".
 export async function DataTable(config) {
     const parent = config.parent;
     let columns = config.columns;
-    const url = config.apiUrl;
+    let url = config.apiUrl;
     let updateTable;
     let isClosed = true;
 
     let users = await getArrayOfData(url);
+
+    //  let t= columns.filter(e=>e.title=="Вік");
+    //  let user=await users[0];
+    //  console.log(t[0].value(user));
+
     const table = document.createElement("table");
     let inputSearch;
 
@@ -26,7 +31,11 @@ export async function DataTable(config) {
 
     inputNewData.addEventListener("keydown", async (e) => {
         if (e.key == "Enter") {
-            users = await getOtherData(inputNewData.value);
+            let ar = url.split("/");
+            ar[ar.length - 2] = inputNewData.value;
+            url = ar.join("/");
+            users = await getArrayOfData(url);
+
             updateTable();
         }
     });
@@ -90,7 +99,8 @@ export async function DataTable(config) {
 
             columns.map((colum, j) => {
                 let value = colum.value;
-                let contents = elem[value];
+
+                let contents = (typeof value === "function") ? value(elem) : elem[value];
 
                 /* нумерація */
                 if (j == 0 && management.numbering) tr.append(craeteElem("td", i + 1));
@@ -132,20 +142,23 @@ export async function DataTable(config) {
             let td, input, tr = document.createElement("tr");
             let inputs = [];
 
-            const titles = columns.map((colum) => colum.title);
-            if (management.numbering) titles.unshift("pusto");
-            titles.push("pusto");
+            const titles = columns.map((colum) => {
+                return (typeof colum.value == "function") ? null : [colum.title, colum.value];
+            });
+
+            if (management.numbering) titles.unshift(null);
+            titles.push(null);
             titles.map((title) => {
                 td = document.createElement("td");
 
-                if (title != "pusto") {
+                if (title != null) {
                     input = document.createElement("input");
                     inputs.push(input);
-                    input.placeholder = `Введіть ${title}`;
+                    input.placeholder = `Введіть ${title[0]}`;
+                    input.setAttribute("name", title[1]);
                     td.append(input);
 
                     input.addEventListener("keydown", async (e) => {
-
                         if (e.key == "Enter") {
                             let enteredData, ar = [];
 
@@ -156,12 +169,13 @@ export async function DataTable(config) {
                                 if (enteredData) ar.push(enteredData);
                             });
 
-                            if (ar.length == values.length) {
-                                let dataToServer = values.reduce((obj = {}, val, i) => {
-                                    obj[val] = ar[i];
-                                    return obj;
-                                }, {});
+                            let inp = tr.getElementsByTagName("input");
+                            if (ar.length == inp.length) {
 
+                                let dataToServer = {};
+                                for (let elem of inp) {
+                                    dataToServer[elem.name] = elem.value;
+                                }
 
                                 users = await addEntry(url, dataToServer);
                                 alert("Дані додані до таблиці")

@@ -12,8 +12,14 @@ export function sorting(obj, property) {
     parameterSwitch = passedProperty !== property ? true : !parameterSwitch;
 
     obj.sort((a, b) => {
-        a = a[property].toLocaleLowerCase();
-        b = b[property].toLocaleLowerCase();
+        if (typeof property == "function") {
+            a = property(a);
+            b = property(b);
+        }else{
+            a = a[property].toLocaleLowerCase();
+            b = b[property].toLocaleLowerCase();
+        }
+
         /* selection of parameters for the function */
         parameters = parameterSwitch ? [a, b] : [b, a];
         return sortTable(...parameters);

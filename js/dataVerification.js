@@ -1,4 +1,5 @@
 export function isLink(str) {
+    if(str==undefined) return false;
     return str.includes("http");
 }
 
