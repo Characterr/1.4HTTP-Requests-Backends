@@ -1,5 +1,4 @@
-import { getArrayOfData, saveData, originUsers } from "./data.js";
-import { isLink, changeOnDate } from "./dataVerification.js";
+import { changeOnDate, isLink } from "./dataVerification.js";
 
 /*Parameters of the sorting function */
 let parameters,
@@ -12,12 +11,27 @@ export function sorting(obj, property) {
     parameterSwitch = passedProperty !== property ? true : !parameterSwitch;
 
     obj.sort((a, b) => {
-        if (typeof property == "function") {
-            a = property(a);
-            b = property(b);
-        }else{
-            a = a[property].toLocaleLowerCase();
-            b = b[property].toLocaleLowerCase();
+
+        switch (typeof property) {
+            case "function": {
+                a = property(a);
+                b = property(b);
+
+                if (a.search(new RegExp("[0-9]")) > -1) {
+                    a = leaveNumbers(a);
+                    b = leaveNumbers(b);
+                }
+                break;
+            }
+            case "number": {
+                a = a[property];
+                b = b[property];
+                break;
+            }
+            default: {
+                a = a[property].toLocaleLowerCase();
+                b = b[property].toLocaleLowerCase();
+            }
         }
 
         /* selection of parameters for the function */
@@ -29,25 +43,22 @@ export function sorting(obj, property) {
     return obj;
 }
 
+function leaveNumbers(str) {
+    return +str.split("")
+        .filter(char => !char.search(new RegExp("[0-9]")))
+        .join("");
+}
+
 /* table data sorting function */
 const sortTable = (a, b) => b == a ? 0 : a > b ? 1 : -1;
 
-export async function getOtherData(value) {
-    let url = `https://mock-api.shpp.me/${value}/users`;
-    return await getArrayOfData(url);
-}
-
-export function showFieldsAddingData(e, isClosed) {
-    document.querySelector(".lineInputs").classList.toggle("hidden");
+export function showFieldsAddingData(e, isClosed,lineInputs) {
+    document.querySelector("."+lineInputs).classList.toggle("hidden");
     e.target.innerHTML = isClosed ? "Додати" : "Приховати";
 }
 
-export async function addEntry(url, data) {
-    await saveData(url, data);
-    return await getArrayOfData(url);
-}
 
-export async function search(list, searchValue) {
+export async function search(originUsers,list, searchValue) {
     let reg = new RegExp(searchValue, "i");
 
     list = originUsers.filter(elem => {

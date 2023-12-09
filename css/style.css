@@ -64,6 +64,7 @@ table input {
     border: none;
     border-radius: 4px;
     padding: 5px;
+    margin: 0 50px;
 }
 
 .hidden {
@@ -91,6 +92,25 @@ table input {
 .wrap button {
     width: 100px;
 }
+
+[type="color"]{
+    width: 140px;
+    height: 30px;
+    position: relative;
+}
+[type="color"]::after{
+    content: "Виберіть color";
+    line-height: 30px;
+    text-align: center;
+    background: linear-gradient(to right,white,#d21414,green,#3d3db5,white);
+    position: absolute;
+    top: 0; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
+}
+
 
 
 

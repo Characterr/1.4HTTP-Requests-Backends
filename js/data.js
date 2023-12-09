@@ -1,34 +1,54 @@
-export let originUsers;
-export async function getArrayOfData(url) {
-    let data = await getData(url, {});
-    let identifiers = Object.keys(data);
+export class Data {
+    
+    constructor(url) {
+        this.url=url;
+        this.originUsers;
+        this.kaysAndTypes;
 
-    let arrayData = identifiers.map(identifier => {
-        data[identifier].id = identifier;
-        return data[identifier];
-    });
+        this.getArrayOfData= async (url) => {
+         
+            let data = await getData(url, {method: "GET"});
+            let identifiers = Object.keys( data);
+        
+            for (let i in identifiers) {
+                if ( data[i]) {
+                    this.kaysAndTypes = Object.entries( data[i]).reduce((map, e) => {
+                        map[e[0]] = typeof e[1];
+                        return map;
+                    }, {});
+                    break;
+                }
+            }
 
-    originUsers = arrayData;
-    return arrayData;
-}
+            let arrayData = identifiers.map((identifier, i) => {
+                data[identifier].id = identifier;
+                return data[identifier];
+            });
 
-async function getData(url, options) {
-    const response = await fetch(url, options);
-    const resJson = await response.json();
-    return resJson.data;
-}
+            this.originUsers = arrayData;
+            return arrayData;
+        };
 
-export async function saveData(url, data) {
-    let options = {
-        method: "POST",
-        body: JSON.stringify(data),
-    };
-    await fetch(url, options);
-}
+        async function getData(url, options){
+            const response = await fetch(url, options);
+            const resJson = await response.json();
+            return  resJson.data;
+        }
 
-export async function deleteData(url, id) {
-    let urldel = `${url}/${id}`;
-    await fetch(urldel, { method: "Delete" });
+        this.saveData=async (url, data) => {
+            let options = {
+                method: "POST",
+                body: JSON.stringify(data),
+            };
+            await fetch(url, options);
+        };
 
-    return await getArrayOfData(url);
+        this.deleteData= async (url, id) => {
+            let urldel = `${url}/${id}`;
+            await fetch(urldel, { method: "Delete" });
+
+            return await this.getArrayOfData(url);
+        };
+
+    }
 }

@@ -3,24 +3,24 @@ export const config1 = {
   columns: [
     { title: 'Ім’я', value: 'name' },
     { title: 'Прізвище', value: 'surname' },
-    { title: 'Фото', value: 'avatar' },
-    { title: 'Вік', value: (user) => getAge(user.birthday) },
+    // { title: 'Фото', value: 'avatar' },
+    { title: 'Вік', value: (user) => getAge(user.birthday)},
     { title: 'День народження', value: 'birthday' },
 
-    //  {title: 'Фото', value: (user) => `<img src="${user.avatar}" alt="${user.name} ${user.surname}"/>` 
-  ],
-  apiUrl: "https://mock-api.shpp.me/ysoroka/users"
+    { title: 'Фото', value: (user) => `<img crossorigin="anonymous" src="${user.avatar}" alt="${user.name} ${user.surname}"/>` },
+  ],                                          //
+  apiUrl: "https://mock-api.shpp.me/qsoroka/users"
 };
 
-// export const config2 = {
-//   parent: '#productsTable',
-//   columns: [
-//     {title: 'Назва', value: 'title'},
-//    // {title: 'Ціна', value: (product) => `${product.price} ${product.currency}`},
-//   //  {title: 'Колір', value: (product) => getColorLabel(product.color)}, // функцію getColorLabel вам потрібно створити
-//   ],
-//   apiUrl: "https://mock-api.shpp.me/<nsurname>/products"
-// };
+export const config2 = {
+  parent: '#productsTable',
+  columns: [
+    { title: 'Назва', value: 'title' },
+    { title: 'Ціна', value: (product) => `${product.price} ${product.currency}` },
+    { title: 'Колір', value: (product) => getColorLabel(product.color) },
+  ],
+  apiUrl: "https://mock-api.shpp.me/ysoroka/products"
+};
 
 export const management = {
   numbering: true,
@@ -40,8 +40,12 @@ function getAge(birthday) {
 
   let difference = currentDate - new Date(birthday) - currentDate.getTimezoneOffset() * minute;
   let years = difference / year | 0;
-  years += difference / year | 0 == 1 ? " рік" : " років";
+  years += (difference / year | 0 )== 1 ? " рік" : " років";
 
   return years;
+}
+
+function getColorLabel(color) {
+  return `<div style="background: ${color}; width:50%; height:30px; margin:0 auto;"  ></div>`;
 }
 
