@@ -25,7 +25,7 @@ function id() {
         let columns = config.columns;
         let url = config.apiUrl;
         let updateTable;
-        let isClosed = false; //true;
+        let isClosed = true;
         let lineInputs = "lineInputs" + tableId;
 
         let data = new Data(url);
