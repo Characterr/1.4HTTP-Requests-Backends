@@ -1,23 +1,31 @@
 import { Data } from "./data.js";
-import { changeOnDate } from "./dataVerification.js";
-import { management } from "./config.js";
+import { changeOnDate, isLink } from "./dataVerification.js";
 import { sorting, showFieldsAddingData, search } from "./tableActions.js";
-
-//showFieldsAddingData, addEntry, search
-//export async function DataTable(config) 
 
 export let DataTable = id();
 
 function id() {
+    /* Table ID */
     let tableId = 0;
 
     return async (config) => {
         tableId++;
+        /* Default Settings */
+        let numbering = config.numbering ?? true;
+        let errorBorder = config.errorBorder ?? "2px solid red";
+        let successBorder = config.successBorder ?? "2px solid green";
+
+        let columnWidth = config.columnWidth;
+        let paddingTable = config.paddingTable;
+        /* Width of the first and remaining columns */
+        let lastCaptionWindth = "116"
+        let firstCaptionWindth = "40"
+
         const parent = config.parent;
         let columns = config.columns;
         let url = config.apiUrl;
         let updateTable;
-        let isClosed = false; //true
+        let isClosed = false; //true;
         let lineInputs = "lineInputs" + tableId;
 
         let data = new Data(url);
@@ -26,13 +34,15 @@ function id() {
 
         showTable();
 
+        /* Creation of fields for searching and switching to another page,
+         as well as buttons for displaying input data for saving*/
         let inputSearch = craeteElem("input", "", ["placeholder", "Search"]);
-        const inputNewData = craeteElem("input", "", ["placeholder", "Введіть nfamily"]);
-        const buttonAdd = craeteElem("button", "Додати");
-        const wrapper = craeteElem("div", "", ["class", "wrap"]);
-        wrapper.append(inputNewData, inputSearch, buttonAdd);
-        table.before(wrapper);
+        inputSearch.addEventListener("input", async (e) => {
+            users = await search(data.originUsers, users, inputSearch.value);
+            updateTable();
+        });
 
+        const inputNewData = craeteElem("input", "", ["placeholder", "Введіть nfamily"]);
         inputNewData.addEventListener("keydown", async (e) => {
             if (e.key == "Enter") {
                 let ar = url.split("/");
@@ -44,26 +54,29 @@ function id() {
             }
         });
 
-        inputSearch.addEventListener("input", async (e) => {
-            users = await search(data.originUsers, users, inputSearch.value);
-            updateTable();
-        });
-
+        const buttonAdd = craeteElem("button", "Додати");
         buttonAdd.addEventListener("click", (e) => {
             isClosed = !isClosed;
             showFieldsAddingData(e, isClosed, lineInputs);
         });
 
+        /* Wrapping and adding to the page */
+        const wrapper = craeteElem("div", "", ["class", "wrap"]);
+        wrapper.append(inputNewData, inputSearch, buttonAdd);
+        table.before(wrapper);
+
+
         function showTable() {
-            const windowWidth = document.documentElement.clientWidth;
-            /* include management.numbering */
-            const elemParent = document.querySelector(parent);
             let thead, tbody;
-            const values = columns.map(elem => elem.value);
+            const windowWidth = document.documentElement.clientWidth;
+            const elemParent = document.querySelector(parent);
             elemParent.append(table);
 
             createTable();
 
+            /**
+             * Creation of tables and data storage fields
+             */
             function createTable() {
                 tbody = document.createElement("tbody");
                 thead = document.createElement("thead");
@@ -74,30 +87,57 @@ function id() {
                 createInputs();
             }
 
+            /**
+             * Creating table headers and adding handlers when they are clicked
+             */
             function createTitles() {
                 let tr = document.createElement("tr");
                 let caption;
+                let firstWinth = 0;
 
-                if (management.numbering) tr.append(craeteElem("th", "№"));
+                /* If numbering is enabled */
+                if (numbering) {
+                    let firstCaption = craeteElem("th", "№");
+                    firstCaption.style.width = firstCaptionWindth + "px";
+                    tr.append(firstCaption);
+                    firstWinth = firstCaptionWindth;
+                }
 
+                /* Creating table headers */
                 columns.map((colum, j) => {
                     let title = colum.title;
                     let value = colum.value;
-
+                    let notSort = colum.notSort;
                     caption = craeteElem("th", title);
+
+                    /* Sorting when clicking on the title */
                     caption.addEventListener("click", () => {
+                        /* turning off sorting by a certain field */
+                        if (notSort) return;
                         users = sorting(users, value);
                         updateTable();
                     });
 
                     tr.append(caption);
-                    caption.style.width = (management.columnWidth ?? (windowWidth - management.paddingTable) / values.length) + "px";
+                    /* Column width if not specified */
+                    caption.style.width = (columnWidth ?? (windowWidth - paddingTable - lastCaptionWindth - firstWinth) / columns.length) + "px";
                 });
-                caption.after(craeteElem("th", "Дії"));
+
+                /* Creating the last field */
+                let lastCaption = craeteElem("th", "Дії");
+                lastCaption.style.width = lastCaptionWindth + "px";
+                caption.after(lastCaption);
 
                 return tr;
             }
 
+            /**
+             * Creating rows and filling them with data
+             *
+             * @param {*} elem One element from the database
+             * @param {*} i Number in order of element
+             * @return {*} Returns the filled element of the table (row)
+             */
             function createRow(elem, i) {
                 let tr = document.createElement("tr");
 
@@ -106,14 +146,14 @@ function id() {
 
                     let contents = (typeof value === "function") ? value(elem) : elem[value];
 
-                    /* нумерація */
-                    if (j == 0 && management.numbering) tr.append(craeteElem("td", i + 1));
+                    /* Add number if numbering is enabled */
+                    if (j == 0 && numbering) tr.append(craeteElem("td", i + 1));
 
                     contents = changeOnDate(contents);
                     tr.append(craeteElem("td", contents));
-
                     tbody.append(tr);
 
+                    /* Create the last table cell and delete button in it */
                     if (j == columns.length - 1) {
                         let td = document.createElement("td");
                         let buttonDel = craeteElem("button", "Видалити", ["class", "buttonDel"]);
@@ -130,66 +170,123 @@ function id() {
                 return tr;
             }
 
+            /**
+             * Update the table after
+             */
             updateTable = function updateTable() {
                 tbody.remove();
                 thead.remove();
                 createTable();
             }
 
+            /**
+             * Creation of data input fields for saving them to the server
+             */
             function createInputs() {
-                let input, tr = document.createElement("tr");
+                let tr = document.createElement("tr");
                 let td = document.createElement("td");
-                let inputs = [];
-                const titles = Object.entries(data.kaysAndTypes);
+                /* Array of intuts for mandatory filling */
+                let reqInputs = [];
 
+                columns.map((elem, i) => {
+                    let fildInput = elem.input;
 
-                titles.map((elem, i) => {
-                    let title = elem[0];
-                    if (i == titles.length - 1) td.setAttribute("colspan", Math.max(title.length, columns.length));
-                    input = document.createElement("input");
-                    inputs.push(input);
-                    input.placeholder = `Введіть ${title}`;
+                    /* Combining the first cell of the table with all the following */
+                    if (i == 0) td.setAttribute("colspan", columns.length + 2);
+                    /* Якщо відсутнє поле інпут в елемента  */
+                    if (!fildInput) return elem;
 
-                    let type;
-                    switch (title) {
-                        case "birthday": type = "date"; break;
-                        case "color": type = "color"; break;
-                        case "price": type = "number"; break;
-                        default: type = "text";
+                    if (fildInput.length > 0) {
+                        /* multiple inputs per field */
+                        fildInput.map(fildInput => createInput(fildInput));
+                    } else {
+                        /* one input per field */
+                        createInput(fildInput)
                     }
-                    input.setAttribute("type", type);
-                    input.setAttribute("name", title);
-                    td.append(input);
+                    tr.append(td);
 
-                    input.addEventListener("keydown", async (e) => {
-                        if (e.key == "Enter") {
-                            let enteredData, ar = [];
+                    function createInput(fildInput) {
+                        let label, select, input = document.createElement("input");
+                        let required = fildInput.required ?? true;
 
-                            inputs.map((input) => {
-                                enteredData = input.value;
-                                input.style.border = enteredData.length == 0 ? management.errorBorder : management.successBorder;
+                        if (fildInput.type == "select") {
+                            label = craeteElem("label", fildInput.label + " : ");
+                            td.append(label);
 
-                                if (enteredData) ar.push(enteredData);
-                            });
+                            select = craeteElem("select");
+                            select.label = input.label;
+                            select.setAttribute("name", fildInput.name);
 
-                            let tagsInput = tr.getElementsByTagName("input");
-                            if (ar.length == tagsInput.length) {
+                            fildInput.options.map(currency => {
+                                let option = craeteElem("option", currency, ["value", currency]);
+                                select.append(option);
+                            })
+                            input = select;
+                        } else {
+                            /* Adding a label or placeholder  */
+                            if (fildInput.type == "date") {
+                                td.append(craeteElem("label", fildInput.label + " : "));
+                            } else {
+                                input.placeholder = `Введіть поле ${elem.title}`;
+                            }
 
-                                let dataToServer = {};
-                                for (let input of tagsInput) {
-                                    let value = data.kaysAndTypes[input.getAttribute("name")] == "number" ? +input.value : input.value;
-                                    dataToServer[input.name] = value;
+                            input.name = fildInput.name ? fildInput.name : elem.value;
+                            input.type = fildInput.type;
+                        }
+                        td.append(input);
+                        if (required) reqInputs.push(input);
+
+                        input.addEventListener("keydown", async (e) => {
+                            if (e.key != "Enter") return;
+                            /* An error that interrupts the execution of sending data  */
+                            let isError = false;
+
+                            reqInputs.map((input) => {
+                                /* Verification of mandatory fields */
+                                if (input.value.length == 0) {
+                                    input.style.border = errorBorder;
+                                    isError = true;
+                                } else {
+                                    input.style.border = successBorder;
                                 }
+                            });
+                            if (isError) return;
 
-                                await data.saveData(url, dataToServer);
+                            let dataToServer = {};
+                            let allInputs = tr.getElementsByTagName("input");
+                            let selects = tr.getElementsByTagName("select");
+
+                            /* Checking all fields for correctness of data and formatting of the required types */
+                            for (let input of [...allInputs, ...selects]) {
+                                let value = input.value;
+                                switch (input.type) {
+                                    case "number": value = +value; break;
+                                    case "date": value = new Date(value); break;
+                                    case "url": {
+                                        if (!isLink(value)) {
+                                            input.value = "";
+                                            input.placeholder = "Введіть url типу http://...";
+                                            input.style.border = errorBorder;
+
+                                            isError = true;
+                                        }
+                                        break;
+                                    }
+                                }
+                                /* The object sent to the server for storage */
+                                dataToServer[input.name] = value;
+                            }
+                            if (isError) return;
+
+                            if (await data.saveData(url, dataToServer)) {
                                 users = await data.getArrayOfData(url);
                                 alert("Дані додані до таблиці")
                                 updateTable();
+                            } else {
+                                alert("Помилка збереження даних")
                             }
-                        }
-                    });
-
-                    tr.append(td);
+                        });
+                    }
                 });
 
                 tr.classList.add(lineInputs);
@@ -198,9 +295,17 @@ function id() {
             }
         }
 
+        /**
+         * Create an element, fill it with content and add an attribute
+         *
+         * @param {*} elem HTML element to be created (string)
+         * @param {*} inscription The content of the element
+         * @param {*} attribute An array of two values. The first element of the array is an attribute, and the second is its value
+         * @return {*} Returns the created element
+         */
         function craeteElem(elem, inscription, attribute) {
             const obj = document.createElement(elem);
-            obj.innerHTML = inscription;
+            obj.innerHTML = inscription || "";
 
             if (attribute != undefined) {
                 const nameAttribute = attribute[0];

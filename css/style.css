@@ -5,8 +5,14 @@ body {
 
 table {
     text-align: center;
-    border-spacing: 0;
+    border-spacing: 0px;
     margin: 0 auto;
+    margin-bottom: 70px;
+}
+
+table img {
+    width: 128px;
+    height: 128px;
 }
 
 table:hover {
@@ -49,68 +55,67 @@ td {
     border-left: 2px solid #fff;
 }
 
-td:first-child,
-th:first-child {
-    border-left: none;
-    width: 30px;
-}
-
-td:last-child,
-th:last-child {
-    width: 70px;
-}
-
 table input {
-    border: none;
+    border-color: transparent;
     border-radius: 4px;
     padding: 5px;
-    margin: 0 50px;
+    margin: 0 20px;
 }
 
 .hidden {
     display: none;
 }
 
-.buttonDel{
-    background: red;;
+.buttonDel {
+    background: red;
+    ;
     border-radius: 4px;
     min-width: 30px;
     min-height: 30px;
 }
 
-.wrap{
+.wrap {
     display: flex;
     justify-content: center;
 }
 
-.wrap input,button {
+.wrap input,
+button {
     border: 1px solid #000;
     display: block;
     margin: 10px 20px;
     padding: 5px;
 }
+
+label+* {
+    margin-left: 0 !important;
+}
+
 .wrap button {
     width: 100px;
 }
 
-[type="color"]{
+[type="color"] {
     width: 140px;
     height: 30px;
     position: relative;
 }
-[type="color"]::after{
+.color{
+     border:1px solid #837d7d;
+      width:50%;
+       height:30px; 
+       margin:0 auto;
+}
+
+[type="color"]::after {
     content: "Виберіть color";
     line-height: 30px;
     text-align: center;
-    background: linear-gradient(to right,white,#d21414,green,#3d3db5,white);
+    background: linear-gradient(to right, white, #d21414, green, #3d3db5, white);
     position: absolute;
-    top: 0; 
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     cursor: pointer;
 }
-
-
-
-

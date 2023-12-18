@@ -7,16 +7,25 @@ let parameters,
     /* the field that was sorted by in the past */
     passedProperty;
 
+/**
+ * Sorting the object by property
+ *
+ * @param {*} obj Sorting object
+ * @param {*} property The property by which we sort the elements of the object
+ * @return {*} We return the sorted object
+ */
 export function sorting(obj, property) {
+    /* The first sort is always from smallest to largest */
     parameterSwitch = passedProperty !== property ? true : !parameterSwitch;
 
     obj.sort((a, b) => {
-
         switch (typeof property) {
+            /* Get a string based on type */
             case "function": {
                 a = property(a);
                 b = property(b);
 
+                /* Sort by numbers if the string has letters and numbers */
                 if (a.search(new RegExp("[0-9]")) > -1) {
                     a = leaveNumbers(a);
                     b = leaveNumbers(b);
@@ -42,7 +51,12 @@ export function sorting(obj, property) {
 
     return obj;
 }
-
+/**
+ * Clear the line from letters
+ * 
+ * @param {*} str Start string
+ * @return {*} Returns the numbers contained in the string
+ */
 function leaveNumbers(str) {
     return +str.split("")
         .filter(char => !char.search(new RegExp("[0-9]")))
@@ -52,18 +66,34 @@ function leaveNumbers(str) {
 /* table data sorting function */
 const sortTable = (a, b) => b == a ? 0 : a > b ? 1 : -1;
 
-export function showFieldsAddingData(e, isClosed,lineInputs) {
-    document.querySelector("."+lineInputs).classList.toggle("hidden");
+/**
+ * Shows or hides fields for adding data
+ *
+ * @param {*} e The button click event
+ * @param {*} isClosed A state indicating whether the input fields are hidden
+ * @param {*} lineInputs Fields for adding data
+ */
+export function showFieldsAddingData(e, isClosed, lineInputs) {
+    document.querySelector("." + lineInputs).classList.toggle("hidden");
     e.target.innerHTML = isClosed ? "Додати" : "Приховати";
 }
 
-
-export async function search(originUsers,list, searchValue) {
+/**
+ * Search on all fields of the table
+ *
+ * @param {*} originUsers The object in which the search takes place
+ * @param {*} list A filtered object containing fields that satisfy the search conditions
+ * @param {*} searchValue The meaning of what is being sought
+ * @return {*} An object with fields that satisfy the search criteria, or the initial object if no search pattern is entered
+ */
+export async function search(originUsers, list, searchValue) {
     let reg = new RegExp(searchValue, "i");
 
     list = originUsers.filter(elem => {
         return Object.values(elem).some((value, i) => {
+            if (typeof value == "number") value += "";
             if (isLink(value)) return false;
+
             value = changeOnDate(value);
             return value.search(reg) > -1;
         })

@@ -1,24 +1,16 @@
+/** A class containing methods for working with data:
+ * getArrayOfData, saveData, deleteData.
+ */
 export class Data {
-    
     constructor(url) {
-        this.url=url;
+        this.url = url;
+        /* data contained in the url link */
         this.originUsers;
-        this.kaysAndTypes;
 
-        this.getArrayOfData= async (url) => {
-         
-            let data = await getData(url, {method: "GET"});
-            let identifiers = Object.keys( data);
-        
-            for (let i in identifiers) {
-                if ( data[i]) {
-                    this.kaysAndTypes = Object.entries( data[i]).reduce((map, e) => {
-                        map[e[0]] = typeof e[1];
-                        return map;
-                    }, {});
-                    break;
-                }
-            }
+        /* Get an array of data with identifiers */
+        this.getArrayOfData = async (url) => {
+            let data = await getData(url, {});
+            let identifiers = Object.keys(data);
 
             let arrayData = identifiers.map((identifier, i) => {
                 data[identifier].id = identifier;
@@ -29,26 +21,29 @@ export class Data {
             return arrayData;
         };
 
-        async function getData(url, options){
+        /* Get data in the format json */
+        async function getData(url, options) {
             const response = await fetch(url, options);
+
             const resJson = await response.json();
-            return  resJson.data;
+            return resJson.data;
         }
 
-        this.saveData=async (url, data) => {
+        /* Save data by url link and returns the result of saving true or false */
+        this.saveData = async function save(url, data) {
             let options = {
                 method: "POST",
                 body: JSON.stringify(data),
             };
-            await fetch(url, options);
+            return (await fetch(url, options)).ok;
         };
 
-        this.deleteData= async (url, id) => {
+        /* Delete data by url link */
+        this.deleteData = async (url, id) => {
             let urldel = `${url}/${id}`;
             await fetch(urldel, { method: "Delete" });
 
             return await this.getArrayOfData(url);
         };
-
     }
 }
