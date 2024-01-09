@@ -6,7 +6,7 @@ export const config1 = {
     { title: 'Вік', value: (user) => getAge(user.birthday), input: { type: 'date', label: 'День народження', name: "birthday" } },
     { title: 'День народження', value: 'birthday' },
     {
-      title: 'Фото', value: (user) => `<img crossorigin="anonymous" src="${user.avatar}" alt="${user.name} ${user.surname}"/>`,
+      title: 'Фото', value: (user) => `<img src="${user.avatar}" alt="${user.name} ${user.surname}"/>`,
       input: { type: 'url', name: 'avatar' },
       /* disable sorting by field */
       notSort: true,
